@@ -1,0 +1,26 @@
+---
+layout: layouts/base.liquid
+---
+
+<article class="prose lg:prose-xl mx-auto">
+  <h1 class="text-4xl font-bold mb-4">{{ title }}</h1>
+  
+  <div class="text-gray-500 mb-8">
+    <time datetime="{{ date | date: '%Y-%m-%d' }}">{{ date | date: "%B %-d, %Y" }}</time>
+    {% if tags.size > 0 %}
+    <div class="mt-2">
+      {% for tag in tags %}
+        {% if tag != "posts" and tag != "blog" %}
+        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">
+          #{{ tag }}
+        </span>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="content">
+    {{ content }}
+  </div>
+</article>

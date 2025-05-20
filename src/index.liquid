@@ -1,0 +1,17 @@
+---
+layout: layouts/base.liquid
+title: Home
+---
+<h1 class="text-4xl font-bold mb-6">Welcome to Our Site</h1>
+
+<section>
+  <h2 class="text-2xl font-semibold mt-8">Blog Posts</h2>
+  <ul class="list-disc ml-5 mt-4">
+    {% for post in collections.posts %}
+      <li class="mt-2">
+        <a href="{{ post.url }}" class="text-blue-600 hover:underline">{{ post.data.title }}</a>
+        <time datetime="{{ post.date }}" class="block text-sm text-gray-500">{{ post.date | date: "%B %-d, %Y" }}</time>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
