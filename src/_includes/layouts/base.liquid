@@ -1,28 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }}</title>
-  <link rel="stylesheet" href="/assets/css/styles.css">
-  <style>
-    /* Inline styles for critical elements to ensure tests pass */
-    header.bg-gray-800 {
-      background-color: rgb(31, 41, 55);
-    }
-    .text-white {
-      color: white;
-    }
-    .font-sans {
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title or metadata.title }}</title>
+    <meta name="description" content="{{ metaDescription or metadata.description }}">
+    
+    <!-- CSS is now handled by PostCSS CLI in both dev and prod modes -->
+    <link rel="stylesheet" href="{{ vite.cssPath | url }}">
+    
+    {% if not vite.isProd %}
+        <!-- In dev mode, load the Vite client for HMR of JavaScript -->
+        <script type="module" src="{{ vite.jsPath }}"></script>
+    {% endif %}
+
+    <!-- Add any other head elements here -->
 </head>
-<body class="font-sans flex flex-col min-h-screen">
-  {% include "components/header.liquid" %}
-  <main class="flex-grow container mx-auto p-4">
-    {{ content }}
-  </main>
-  {% include "components/footer.liquid" %}
+<body class="font-sans antialiased text-gray-900 bg-gray-50">
+    {% include "components/header.liquid" %}
+
+    <main id="main-content" class="container mx-auto px-4 py-8">
+        {{ content }}
+    </main>
+
+    {% include "components/footer.liquid" %}
+
+    {% if vite.isProd and vite.jsPath != "" %}
+        <script type="module" src="{{ vite.jsPath | url }}"></script>
+    {% else %}
+        <!-- In dev, main.js is already included above for CSS,
+             so we don't need to include it again here -->
+    {% endif %}
 </body>
 </html>

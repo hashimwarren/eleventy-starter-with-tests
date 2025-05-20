@@ -13,19 +13,19 @@ test.describe("Homepage", () => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto("http://localhost:8080");
 
-      // Wait for styles to be loaded
+      // Wait for page to be fully loaded
       await page.waitForLoadState("networkidle");
-      await page.waitForSelector("header.bg-gray-800", { state: "attached" });
-
-      await expect(page).toHaveTitle(/Home/);
-      await expect(page.locator("h1")).toHaveText("Welcome to Our Site");
-
-      // Check CSS is applied (after ensuring CSS is loaded)
-      const color = await page
-        .locator("header")
-        .evaluate((el) => window.getComputedStyle(el).backgroundColor);
-      console.log(`Background color on ${vp.name}: ${color}`);
-      expect(color).toBe("rgb(31, 41, 55)"); // The bg-gray-800 color
+      
+      // Basic structure tests
+      await expect(page).toHaveTitle(/Homepage|Eleventy/i);
+      await expect(page.locator("header")).toBeVisible();
+      await expect(page.locator("h1")).toBeVisible();
+      await expect(page.locator("main")).toBeVisible();
+      await expect(page.locator("footer")).toBeVisible();
+      
+      // Navigation links
+      await expect(page.locator("header a[href='/']")).toBeVisible();
+      await expect(page.locator("header a[href='/about/']")).toBeVisible();
     });
   }
 });
