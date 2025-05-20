@@ -1,17 +1,58 @@
 ---
 layout: layouts/base.liquid
-title: Home
+title: Homepage - My Eleventy Site
+metaDescription: Welcome to the homepage of my awesome Eleventy site with Tailwind CSS and Vite.
 ---
-<h1 class="text-4xl font-bold mb-6">Welcome to Our Site</h1>
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-4xl font-bold text-blue-600 mb-6">{{ title }}</h1>
+  <p class="mb-4 text-lg">Welcome to the Eleventy starter project, now with Vite integration!</p>
 
-<section>
-  <h2 class="text-2xl font-semibold mt-8">Blog Posts</h2>
-  <ul class="list-disc ml-5 mt-4">
-    {% for post in collections.posts %}
-      <li class="mt-2">
-        <a href="{{ post.url }}" class="text-blue-600 hover:underline">{{ post.data.title }}</a>
-        <time datetime="{{ post.date }}" class="block text-sm text-gray-500">{{ post.date | date: "%B %-d, %Y" }}</time>
-      </li>
-    {% endfor %}
-  </ul>
-</section>
+  <section class="my-8 p-6 bg-gray-100 rounded-lg shadow-md">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">About This Setup</h2>
+    <p class="text-gray-600 mb-2">
+      This project demonstrates a manual integration of Vite with Eleventy for optimized asset bundling (CSS and JavaScript).
+      Tailwind CSS is processed by Vite, and Jest/Playwright are configured for testing.
+    </p>
+    <p class="text-gray-600">
+      Check out the <code class="bg-gray-200 px-1 rounded">src/_data/vite.js</code> file and the updated <code class="bg-gray-200 px-1 rounded">src/_includes/layouts/base.liquid</code>
+      to see how assets are handled in development and production.
+    </p>
+  </section>
+
+  <section class="my-8">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">Latest Blog Posts</h2>
+    {% if collections.posts.length > 0 %}
+      <ul class="space-y-4">
+        {% for post in collections.posts limit: 3 %}
+          <li class="p-4 border border-gray-300 rounded-md hover:shadow-lg transition-shadow">
+            <h3 class="text-xl font-medium text-blue-700 hover:text-blue-800">
+              <a href="{{ post.url }}">{{ post.data.title }}</a>
+            </h3>
+            <p class="text-sm text-gray-500 mb-1">
+              Published on: <time datetime="{{ post.date | date: '%Y-%m-%d' }}">{{ post.date | date: "%B %-d, %Y" }}</time>
+            </p>
+            {% if post.data.tags and post.data.tags.length > 0 %}
+              <p class="text-xs text-gray-500">
+                Tags: 
+                {% for tag in post.data.tags %}
+                  <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{{ tag }}</span>
+                {% endfor %}
+              </p>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      {% if collections.posts.length > 3 %}
+        <p class="mt-4"><a href="/posts/" class="text-blue-600 hover:underline">View all posts...</a></p>
+      {% endif %}
+    {% else %}
+      <p class="text-gray-600">No blog posts yet. Stay tuned!</p>
+    {% endif %}
+  </section>
+
+  <section class="my-8">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">Contact Us</h2>
+    {% include "components/form-contact.liquid" %}
+  </section>
+
+</div>
