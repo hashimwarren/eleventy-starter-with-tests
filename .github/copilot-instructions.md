@@ -1,8 +1,8 @@
 # Project Overview
 
-This repository is a **standard Eleventy 3.1** project configured with **Liquid** templates and **Tailwind 4**, driven entirely by **ESM**. We use Eleventy hooks (`eleventy.before` + `eleventy.beforeWatch`) to compile Tailwind via PostCSS (with Autoprefixer and cssnano). Unit testing is provided by **Jest** (configured for ESM), linting by **Stylelint** for CSS, **liquid-linter-cli** for templates, **markdownlint-cli** for Markdown content, and **Playwright** for end‑to‑end checks. Deployment is handled by **Netlify**, with the **Netlify CLI** used locally, and **Netlify Forms** for form handling.
+This repository is an **Eleventy 3.1** project with **manual Vite integration** for JavaScript bundling, configured with **Liquid** templates and **Tailwind 4**, driven entirely by **ESM**. CSS is processed separately via **PostCSS CLI** using `@tailwindcss/postcss` (with Autoprefixer and cssnano), while JavaScript is bundled through **Vite** with HMR in development and optimized builds for production. The integration uses a data file (`src/_data/vite.js`) to manage asset paths in both development and production modes. Unit testing is provided by **Jest** (configured for ESM), linting by **Stylelint** for CSS, **liquid-linter-cli** for templates, **markdownlint-cli** for Markdown content, and **Playwright** for end‑to‑end checks. Deployment is handled by **Netlify**, with the **Netlify CLI** used locally, and **Netlify Forms** for form handling.
 
-All generated site files go into the default `_site/` folder. We always invoke Eleventy via `npx @11ty/eleventy` to ensure the locally installed version is used.
+All generated site files go into the default `_site/` folder. We use **npm-run-all** for parallel development servers (Eleventy, Vite, and PostCSS watch) and sequential production builds.
 
 ---
 
@@ -14,7 +14,9 @@ All generated site files go into the default `_site/` folder. We always invoke E
 my-project/
 ├── package.json           # "type": "module" enables ESM
 ├── netlify.toml           # Netlify build & dev settings
-├── .eleventy.js           # Eleventy config with CSS hooks & collections
+├── .eleventy.js           # Eleventy config (no CSS hooks - CSS handled by PostCSS CLI)
+├── vite.config.js         # Vite config for JS bundling only
+├── postcss.config.cjs     # PostCSS config for Tailwind processing
 ├── jest.config.cjs        # Jest ESM config
 ├── playwright.config.ts   # Playwright E2E config
 ├── stylelint.config.cjs   # CSS lint rules
@@ -22,12 +24,13 @@ my-project/
 ├── tailwind.config.js     # Tailwind utilities config
 └── src/
     ├── _data/             # JSON/YAML for global data
+    │   └── vite.js        # Asset path management for dev/prod
     ├── _includes/         # layouts + components
     │   ├── layouts/
     │   └── components/
     ├── assets/
     │   ├── styles/        # Tailwind entrypoint: index.css
-    │   └── js/            # static scripts passthrough
+    │   └── js/            # JS modules bundled by Vite
     ├── index.liquid       # homepage
     ├── about.liquid       # about page
     ├── posts/             # blog posts (Markdown files)
@@ -40,14 +43,21 @@ my-project/
   ```jsonc
   {
     "scripts": {
-      "build": "npx @11ty/eleventy",
-      "start": "npx @11ty/eleventy --serve",
+      "css:dev": "mkdir -p _site/assets/css && postcss src/assets/styles/index.css -o _site/assets/css/styles.css --watch",
+      "eleventy:serve": "npx @11ty/eleventy --serve --quiet",
+      "vite:serve": "vite",
+      "start": "npm-run-all --parallel css:dev eleventy:serve vite:serve",
+      "css:build": "NODE_ENV=production postcss src/assets/styles/index.css -o _site/assets/css/styles.css",
+      "eleventy:build": "npx @11ty/eleventy",
+      "vite:build": "vite build",
+      "build": "npm-run-all eleventy:build css:build vite:build",
       "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+      "pretest:e2e": "npm run build",
       "test:e2e": "npx playwright test",
       "lint:css": "stylelint \"src/assets/styles/**/*.css\"",
       "lint:liquid": "liquid-linter-cli \"src/**/*.{liquid,html}\"",
-      "lint:md": "markdownlint "src/posts/**/*.md"",
-      "lint": "npm run lint:css && npm run lint:liquid && npm run lint:md",
+      "lint:md": "markdownlint \"src/posts/**/*.md\"",
+      "lint": "npm-run-all --parallel lint:*",
       "deploy": "npx netlify deploy --prod --dir=_site"
     }
   }
@@ -97,7 +107,46 @@ This setup organizes Markdown-based blog posts with consistent ordering and acce
 
 ---
 
+## Manual Vite Integration
+
+This project uses manual Vite integration instead of the `@11ty/eleventy-plugin-vite` plugin for better control and compatibility with Eleventy 3.x:
+
+### Development Mode
+
+In development, three processes run in parallel:
+
+1. **PostCSS CLI**: Watches and compiles Tailwind CSS to `_site/assets/css/styles.css`
+2. **Eleventy**: Serves templates and content with live reload
+3. **Vite**: Provides HMR for JavaScript modules
+
+The `src/_data/vite.js` data file provides asset paths to templates:
+- In dev: CSS served from `_site/assets/css/styles.css`, JS from Vite dev server
+- CSS is linked directly in templates, JS is loaded via Vite's dev server URL
+
+### Production Mode
+
+Build runs sequentially:
+
+1. **Eleventy**: Generates static HTML files
+2. **PostCSS**: Compiles and minifies CSS with cssnano
+3. **Vite**: Bundles JavaScript with hash-based filenames and generates manifest
+
+The Vite manifest (`_site/assets/js/.vite/manifest.json`) is read by `src/_data/vite.js` to provide hashed asset paths to templates.
+
+### Asset Path Management
+
+The `src/_data/vite.js` file:
+- Detects build mode via `process.env.ELEVENTY_RUN_MODE`
+- Returns appropriate CSS and JS paths for templates
+- Handles missing manifest gracefully in development
+
+Templates use `{{ vite.cssPath }}` and `{{ vite.jsPath }}` to reference assets conditionally.
+
+---
+
 ## CSS Pipeline
+
+CSS is handled separately from Vite to avoid conflicts and ensure proper Tailwind processing:
 
 1. **Entrypoint**: `src/assets/styles/index.css` contains only:
 

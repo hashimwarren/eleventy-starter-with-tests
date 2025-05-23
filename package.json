@@ -10,7 +10,7 @@
     "css:build": "NODE_ENV=production postcss src/assets/styles/index.css -o _site/assets/css/styles.css",
     "eleventy:build": "npx @11ty/eleventy",
     "vite:build": "vite build",
-    "build": "npm-run-all eleventy:build css:build vite:build",
+    "build": "npm run css:build && npm run vite:build && ELEVENTY_RUN_MODE=build npm run eleventy:build",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "pretest:e2e": "npm run build",
     "test:e2e": "npx playwright test",

@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title or metadata.title }}</title>
-    <meta name="description" content="{{ metaDescription or metadata.description }}">
+    <title>{{ title | default: metadata.title | default: "Eleventy Site" }}</title>
+    <meta name="description" content="{{ metaDescription | default: metadata.description | default: "A modern Eleventy site" }}">
     
     <!-- CSS is now handled by PostCSS CLI in both dev and prod modes -->
-    <link rel="stylesheet" href="{{ vite.cssPath | url }}">
+    <link rel="stylesheet" href="{{ vite.cssPath }}">
     
     {% if not vite.isProd %}
         <!-- In dev mode, load the Vite client for HMR of JavaScript -->
@@ -26,7 +26,7 @@
     {% include "components/footer.liquid" %}
 
     {% if vite.isProd and vite.jsPath != "" %}
-        <script type="module" src="{{ vite.jsPath | url }}"></script>
+        <script type="module" src="{{ vite.jsPath }}"></script>
     {% else %}
         <!-- In dev, main.js is already included above for CSS,
              so we don't need to include it again here -->

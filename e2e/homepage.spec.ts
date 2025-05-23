@@ -17,14 +17,17 @@ test.describe("Homepage", () => {
       await page.waitForLoadState("networkidle");
       
       // Basic structure tests
-      await expect(page).toHaveTitle(/Homepage|Eleventy/i);
+      await expect(page).toHaveTitle(/Homepage - My Eleventy Site|Eleventy Starter with Tests/i);
       await expect(page.locator("header")).toBeVisible();
       await expect(page.locator("h1")).toBeVisible();
       await expect(page.locator("main")).toBeVisible();
       await expect(page.locator("footer")).toBeVisible();
       
       // Navigation links
-      await expect(page.locator("header a[href='/']")).toBeVisible();
+      // Check for the site title link specifically
+      await expect(page.locator("header a.text-xl[href='/']")).toBeVisible(); 
+      // Check for the "Home" navigation link specifically
+      await expect(page.getByRole('link', { name: 'Home' })).toBeVisible();
       await expect(page.locator("header a[href='/about/']")).toBeVisible();
     });
   }

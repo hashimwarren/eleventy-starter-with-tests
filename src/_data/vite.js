@@ -16,7 +16,10 @@ export default function() {
   }
 
   // For production
-  const manifestPath = path.resolve(__dirname, '../../../_site/assets/js/.vite/manifest.json');
+  const manifestPath = path.resolve(__dirname, '../../_site/assets/js/.vite/manifest.json');
+  
+  console.log('Looking for manifest at:', manifestPath);
+  console.log('File exists:', fs.existsSync(manifestPath));
   
   if (!fs.existsSync(manifestPath)) {
     console.warn(`Vite manifest not found at ${manifestPath}. Assets may not be available.`);
